@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/toast"
-import { Network, Plus } from "lucide-react"
+import { Network, Plus, Edit } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 interface Network {
@@ -23,6 +23,10 @@ export default function NetworksPage() {
     const [newNetworkName, setNewNetworkName] = useState("")
     const [newNetworkDescription, setNewNetworkDescription] = useState("")
     const [isCreating, setIsCreating] = useState(false)
+    const [editingNetwork, setEditingNetwork] = useState<Network | null>(null)
+    const [editName, setEditName] = useState("")
+    const [editDescription, setEditDescription] = useState("")
+    const [isEditing, setIsEditing] = useState(false)
     const router = useRouter()
     const { addToast } = useToast()
 
@@ -93,6 +97,49 @@ export default function NetworksPage() {
         }
     }
 
+    const handleEditNetwork = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!editingNetwork) return
+
+        setIsEditing(true)
+        try {
+            const response = await fetch(`/api/networks/${editingNetwork.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: editName,
+                    description: editDescription,
+                }),
+            })
+
+            if (!response.ok) {
+                throw new Error("Failed to update network")
+            }
+
+            const updatedNetwork = await response.json()
+            setNetworks(networks.map(n => n.id === updatedNetwork.id ? updatedNetwork : n))
+            setEditingNetwork(null)
+            setIsEditing(false)
+
+            addToast({
+                title: "Success",
+                description: "Network updated successfully",
+                variant: "success",
+            })
+        } catch (error) {
+            console.error("Error updating network:", error)
+            addToast({
+                title: "Error",
+                description: "Failed to update network",
+                variant: "destructive",
+            })
+        } finally {
+            setIsEditing(false)
+        }
+    }
+
     const handleLogout = async () => {
         try {
             await fetch("/api/auth/logout", { method: "POST" })
@@ -123,23 +170,37 @@ export default function NetworksPage() {
                 {networks.map((network) => (
                     <Card
                         key={network.id}
-                        className="cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => router.push(`/networks/${network.id}`)}
+                        className="group relative cursor-pointer hover:bg-muted/50 transition-colors"
                     >
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Network className="h-5 w-5 text-primary" />
-                                {network.name}
-                            </CardTitle>
-                            {network.description && (
-                                <CardDescription>{network.description}</CardDescription>
-                            )}
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground">
-                                Created {new Date(network.createdAt).toLocaleDateString()}
-                            </p>
-                        </CardContent>
+                        <div onClick={() => router.push(`/networks/${network.id}`)}>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Network className="h-5 w-5 text-primary" />
+                                    {network.name}
+                                </CardTitle>
+                                {network.description && (
+                                    <CardDescription>{network.description}</CardDescription>
+                                )}
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground">
+                                    Created {new Date(network.createdAt).toLocaleDateString()}
+                                </p>
+                            </CardContent>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setEditingNetwork(network)
+                                setEditName(network.name)
+                                setEditDescription(network.description || "")
+                            }}
+                        >
+                            <Edit className="h-4 w-4" />
+                        </Button>
                     </Card>
                 ))}
 
@@ -193,6 +254,45 @@ export default function NetworksPage() {
                     </DialogContent>
                 </Dialog>
             </div>
+
+            <Dialog open={!!editingNetwork} onOpenChange={(open) => !open && setEditingNetwork(null)}>
+                <DialogContent>
+                    <form onSubmit={handleEditNetwork}>
+                        <DialogHeader>
+                            <DialogTitle>Edit Network</DialogTitle>
+                            <DialogDescription>
+                                Update the network name and description.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-name">Network Name</Label>
+                                <Input
+                                    id="edit-name"
+                                    value={editName}
+                                    onChange={(e) => setEditName(e.target.value)}
+                                    placeholder="Enter network name"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-description">Description</Label>
+                                <Input
+                                    id="edit-description"
+                                    value={editDescription}
+                                    onChange={(e) => setEditDescription(e.target.value)}
+                                    placeholder="Enter network description"
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit" disabled={isEditing}>
+                                {isEditing ? "Updating..." : "Update Network"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 } 

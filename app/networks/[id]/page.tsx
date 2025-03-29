@@ -73,6 +73,10 @@ export default function NetworkPage({ params }: { params: Promise<{ id: string }
         }
     }
 
+    const handleNetworkUpdated = (updatedNetwork: Network) => {
+        setNetwork(updatedNetwork)
+    }
+
     if (isLoading) {
         return <div>Loading...</div>
     }
@@ -99,7 +103,7 @@ export default function NetworkPage({ params }: { params: Promise<{ id: string }
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <SettingsMenu />
+                    <SettingsMenu network={network} onNetworkUpdated={handleNetworkUpdated} />
                     <Button variant="outline" onClick={handleLogout}>
                         Logout
                     </Button>

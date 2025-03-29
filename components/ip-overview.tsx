@@ -31,7 +31,8 @@ export function IPOverview({ subnets, onDeleteIpAssignment, onEditIpAssignment }
     (ip) =>
       ip.ip.includes(searchTerm) ||
       ip.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ip.subnetName.toLowerCase().includes(searchTerm.toLowerCase()),
+      ip.subnetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ip.description?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   if (allIPs.length === 0) {

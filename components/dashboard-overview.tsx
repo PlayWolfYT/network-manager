@@ -51,7 +51,8 @@ export function DashboardOverview({ subnets, onCreateSubnet }: DashboardOverview
     const matchesSearch = !searchTerm ||
       ip.ip.includes(searchTerm) ||
       ip.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ip.subnetName.toLowerCase().includes(searchTerm.toLowerCase())
+      ip.subnetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ip.description?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesSubnet = !selectedSubnet || ip.subnetName === selectedSubnet
 

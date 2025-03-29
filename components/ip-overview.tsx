@@ -1,19 +1,20 @@
 "use client"
 
-import type { Subnet } from "@/lib/types"
+import type { Subnet, IPAssignment } from "@/lib/types"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Cpu, Trash2 } from "lucide-react"
+import { Cpu, Trash2, Edit } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 
 interface IPOverviewProps {
   subnets: Subnet[]
   onDeleteIpAssignment: (subnetId: string, ipAssignmentId: string) => void
+  onEditIpAssignment: (subnetId: string, ipAssignment: IPAssignment) => void
 }
 
-export function IPOverview({ subnets, onDeleteIpAssignment }: IPOverviewProps) {
+export function IPOverview({ subnets, onDeleteIpAssignment, onEditIpAssignment }: IPOverviewProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
   // Flatten all IP assignments from all subnets
@@ -89,15 +90,26 @@ export function IPOverview({ subnets, onDeleteIpAssignment }: IPOverviewProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDeleteIpAssignment(ip.subnetId, ip.id)}
-                      aria-label={`Delete IP assignment ${ip.ip}`}
-                      className="hover:bg-red-900/30"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-400" />
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEditIpAssignment(ip.subnetId, ip)}
+                        aria-label={`Edit IP assignment ${ip.ip}`}
+                        className="hover:bg-primary/10"
+                      >
+                        <Edit className="h-4 w-4 text-primary" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDeleteIpAssignment(ip.subnetId, ip.id)}
+                        aria-label={`Delete IP assignment ${ip.ip}`}
+                        className="hover:bg-red-900/30"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

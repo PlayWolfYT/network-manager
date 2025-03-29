@@ -19,6 +19,8 @@ export function NetworkDashboard({ networkId }: NetworkDashboardProps) {
   const [subnets, setSubnets] = useState<Subnet[]>([])
   const [editingSubnet, setEditingSubnet] = useState<Subnet | null>(null)
   const [activeView, setActiveView] = useState<ViewType>("dashboard")
+  const [editingIp, setEditingIp] = useState<IPAssignment | undefined>()
+  const [editingSubnetId, setEditingSubnetId] = useState<string | undefined>()
   const [isLoading, setIsLoading] = useState(true)
   const { addToast } = useToast()
 
@@ -248,6 +250,75 @@ export function NetworkDashboard({ networkId }: NetworkDashboardProps) {
     setActiveView("create")
   }
 
+  const handleEditIpAssignment = (subnetId: string, ipAssignment: IPAssignment) => {
+    setEditingIp(ipAssignment)
+    setEditingSubnetId(subnetId)
+    setActiveView("assign")
+  }
+
+  const handleUpdateIpAssignment = async (subnetId: string, ipAssignment: IPAssignment) => {
+    try {
+      const response = await fetch(`/api/networks/${networkId}/subnets/${subnetId}/ip-assignments/${editingIp?.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ip: ipAssignment.ip,
+          service: ipAssignment.service,
+          description: ipAssignment.description,
+        }),
+      })
+
+      if (response.ok) {
+        const updatedIpAssignment = await response.json()
+
+        setSubnets(
+          subnets.map((subnet) => {
+            if (subnet.id === subnetId) {
+              return {
+                ...subnet,
+                ipAssignments: subnet.ipAssignments.map((ip) =>
+                  ip.id === editingIp?.id ? updatedIpAssignment : ip
+                ),
+              }
+            }
+            return subnet
+          }),
+        )
+
+        addToast({
+          title: "IP Assignment Updated",
+          description: `IP ${ipAssignment.ip} has been updated for ${ipAssignment.service}.`,
+          variant: "success",
+          duration: 3000,
+        })
+
+        // Reset editing state
+        setEditingIp(undefined)
+        setEditingSubnetId(undefined)
+        setActiveView("ips")
+      } else {
+        throw new Error("Failed to update IP assignment")
+      }
+    } catch (error) {
+      console.error("Error updating IP assignment:", error)
+      addToast({
+        title: "Error",
+        description: "Failed to update IP assignment",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleSubmitIpAssignment = async (subnetId: string, ipAssignment: IPAssignment) => {
+    if (editingIp) {
+      await handleUpdateIpAssignment(subnetId, ipAssignment)
+    } else {
+      await handleAddIpAssignment(subnetId, ipAssignment)
+    }
+  }
+
   const renderActiveView = () => {
     if (isLoading) {
       return (
@@ -279,9 +350,9 @@ export function NetworkDashboard({ networkId }: NetworkDashboardProps) {
       case "create":
         return <SubnetForm onSubmit={handleAddSubnet} existingSubnets={subnets} />
       case "ips":
-        return <IPOverview subnets={subnets} onDeleteIpAssignment={handleDeleteIpAssignment} />
+        return <IPOverview subnets={subnets} onDeleteIpAssignment={handleDeleteIpAssignment} onEditIpAssignment={handleEditIpAssignment} />
       case "assign":
-        return <CentralizedIPForm subnets={subnets} onSubmit={handleAddIpAssignment} />
+        return <CentralizedIPForm subnets={subnets} onSubmit={handleSubmitIpAssignment} editingIp={editingIp} editingSubnetId={editingSubnetId} />
       default:
         return null
     }

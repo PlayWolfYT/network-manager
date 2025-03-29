@@ -18,14 +18,16 @@ import { useToast } from "@/components/ui/toast"
 interface CentralizedIPFormProps {
   subnets: Subnet[]
   onSubmit: (subnetId: string, ipAssignment: IPAssignment) => void
+  editingIp?: IPAssignment
+  editingSubnetId?: string
 }
 
-export function CentralizedIPForm({ subnets, onSubmit }: CentralizedIPFormProps) {
-  const [selectedSubnetId, setSelectedSubnetId] = useState<string>("")
+export function CentralizedIPForm({ subnets, onSubmit, editingIp, editingSubnetId }: CentralizedIPFormProps) {
+  const [selectedSubnetId, setSelectedSubnetId] = useState<string>(editingSubnetId || "")
   const [formData, setFormData] = useState<Omit<IPAssignment, "id" | "subnetId">>({
-    ip: "",
-    service: "",
-    description: "",
+    ip: editingIp?.ip || "",
+    service: editingIp?.service || "",
+    description: editingIp?.description || "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [duplicateIP, setDuplicateIP] = useState<(IPAssignment & { subnetName: string }) | null>(null)
@@ -78,8 +80,8 @@ export function CentralizedIPForm({ subnets, onSubmit }: CentralizedIPFormProps)
       newErrors.service = "Service name is required"
     }
 
-    // Check for duplicate IP
-    const duplicate = findDuplicateIP(formData.ip, subnets)
+    // Check for duplicate IP, excluding the current IP when editing
+    const duplicate = findDuplicateIP(formData.ip, subnets, editingIp?.id)
     if (duplicate) {
       setDuplicateIP(duplicate)
       addToast({
@@ -124,10 +126,10 @@ export function CentralizedIPForm({ subnets, onSubmit }: CentralizedIPFormProps)
     <Card className="max-w-2xl mx-auto bg-card border-border glow-border">
       <CardHeader className="bg-gradient-dark">
         <CardTitle className="flex items-center gap-2 text-primary">
-          <Server className="h-5 w-5" /> Assign IP Address
+          <Server className="h-5 w-5" /> {editingIp ? "Edit IP Address" : "Assign IP Address"}
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Assign an IP address to a service within a subnet
+          {editingIp ? "Update the IP address assignment details" : "Assign an IP address to a service within a subnet"}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -227,7 +229,7 @@ export function CentralizedIPForm({ subnets, onSubmit }: CentralizedIPFormProps)
             className="w-full bg-primary hover:bg-primary/80 text-white"
             disabled={!selectedSubnetId || duplicateIP !== null}
           >
-            Assign IP Address
+            {editingIp ? "Update IP Address" : "Assign IP Address"}
           </Button>
         </CardFooter>
       </form>

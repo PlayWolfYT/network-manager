@@ -200,9 +200,11 @@ export function calculateSubnetStats(subnet: Subnet) {
 }
 
 // Find duplicate IP across all subnets
-export function findDuplicateIP(ip: string, subnets: Subnet[]): (IPAssignment & { subnetName: string }) | null {
+export function findDuplicateIP(ip: string, subnets: Subnet[], excludeId?: string): (IPAssignment & { subnetName: string }) | null {
   for (const subnet of subnets) {
-    const duplicate = (subnet.ipAssignments || []).find((assignment) => assignment.ip === ip)
+    const duplicate = (subnet.ipAssignments || []).find((assignment) =>
+      assignment.ip === ip && (!excludeId || assignment.id !== excludeId)
+    )
     if (duplicate) {
       return {
         ...duplicate,

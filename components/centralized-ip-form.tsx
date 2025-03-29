@@ -33,13 +33,8 @@ export function CentralizedIPForm({ subnets, onSubmit }: CentralizedIPFormProps)
 
   const selectedSubnet = subnets.find((s) => s.id === selectedSubnetId)
 
-  // Reset form when subnet changes
+  // Reset form errors when subnet changes
   useEffect(() => {
-    setFormData({
-      ip: "",
-      service: "",
-      description: "",
-    })
     setErrors({})
     setDuplicateIP(null)
   }, [selectedSubnetId])

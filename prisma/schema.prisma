@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String        @id @default(cuid())
+  email     String        @unique
+  name      String?
+  password  String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  networks  Network[]
+  settings  UserSettings?
+}
+
+model Network {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  subnets     Subnet[]
+}
+
+model Subnet {
+  id            String         @id @default(cuid())
+  name          String
+  cidr          String
+  description   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  network       Network        @relation(fields: [networkId], references: [id], onDelete: Cascade)
+  networkId     String
+  ipAssignments IPAssignment[]
+}
+
+model IPAssignment {
+  id          String   @id @default(cuid())
+  ip          String
+  service     String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  subnet      Subnet   @relation(fields: [subnetId], references: [id], onDelete: Cascade)
+  subnetId    String
+
+  @@unique([ip, subnetId])
+}
+
+model UserSettings {
+  id        String   @id @default(cuid())
+  theme     String   @default("blue-dark")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+}

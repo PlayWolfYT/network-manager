@@ -22,7 +22,11 @@ export async function GET(
                         id: subnetId,
                     },
                     include: {
-                        ipAssignments: true,
+                        ipAssignments: {
+                            orderBy: {
+                                createdAt: "desc",
+                            }
+                        },
                     },
                 },
             },

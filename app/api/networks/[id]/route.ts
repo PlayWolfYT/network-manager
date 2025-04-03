@@ -19,7 +19,11 @@ export async function GET(
             include: {
                 subnets: {
                     include: {
-                        ipAssignments: true,
+                        ipAssignments: {
+                            orderBy: {
+                                createdAt: "desc",
+                            }
+                        },
                     },
                 },
             },

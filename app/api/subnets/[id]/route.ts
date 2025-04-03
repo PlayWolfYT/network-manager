@@ -8,7 +8,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
         id: params.id,
       },
       include: {
-        ipAssignments: true,
+        ipAssignments: {
+          orderBy: {
+            createdAt: "desc",
+          }
+        },
       },
     })
 

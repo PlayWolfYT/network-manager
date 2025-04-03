@@ -16,9 +16,6 @@ export async function POST(request: Request) {
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
     })
 
     return NextResponse.json(ipAssignment)

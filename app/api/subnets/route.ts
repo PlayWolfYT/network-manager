@@ -7,6 +7,9 @@ export async function GET() {
       include: {
         ipAssignments: true,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     })
     return NextResponse.json(subnets)
   } catch (error) {

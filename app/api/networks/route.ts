@@ -9,9 +9,6 @@ export async function GET(request: Request) {
             where: {
                 userId: session.id,
             },
-            orderBy: {
-                createdAt: "desc",
-            },
         })
         return NextResponse.json(networks)
     } catch (error) {

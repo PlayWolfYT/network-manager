@@ -5,10 +5,11 @@ export async function GET() {
   try {
     const subnets = await prisma.subnet.findMany({
       include: {
-        ipAssignments: true,
-      },
-      orderBy: {
-        createdAt: "desc",
+        ipAssignments: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
       },
     })
     return NextResponse.json(subnets)
